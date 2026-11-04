@@ -26,7 +26,9 @@ export function createInputSources(engine) {
   const keys = new Set();
   let flapPulse = false;
   let clickPulse = false;
-  let yaw = 0, pitch = 0;
+  // ?pitch=0.5 처럼 시작 시선을 위로 (화면 확인용)
+  const startPitch = Number(new URLSearchParams(location.search).get('pitch')) || 0;
+  let yaw = 0, pitch = startPitch;
   window.addEventListener('keydown', (e) => {
     keys.add(e.code);
     if (e.code === 'Space') { flapPulse = true; e.preventDefault(); }
@@ -97,6 +99,6 @@ export function createInputSources(engine) {
       const p = engine.isXR() ? camera.position : { x: 0, y: DESK_HEAD_Y };
       return { headY: p.y, headX: p.x };
     },
-    resetLook() { yaw = 0; pitch = 0; },
+    resetLook() { yaw = 0; pitch = startPitch; },
   };
 }
