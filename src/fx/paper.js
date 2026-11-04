@@ -203,8 +203,16 @@ export function makeSkyDome({ seed = 7, night = true } = {}) {
   ctx.globalAlpha = 1;
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const mesh = new THREE.Mesh(new THREE.SphereGeometry(80, 48, 24), new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, depthWrite: false }));
+  const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, depthWrite: false });
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(80, 48, 24), mat);
   mesh.renderOrder = -10;
+  // public/art/sky_pano.png (산수화 파노라마)가 있으면 그걸로 바꾼다
+  loadArtTexture('sky_pano').then((t) => {
+    if (!t) return;
+    t.wrapS = THREE.RepeatWrapping;
+    mat.map = t;
+    mat.needsUpdate = true;
+  });
   return mesh;
 }
 

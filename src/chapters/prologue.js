@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeInkTexture } from '../fx/paper.js';
+import { makeInkTexture, loadArtTexture } from '../fx/paper.js';
 
 const LINES = [
   [0.5, '옛날 옛적, 적악산이라 불리던 산이 있었다…', 5],
@@ -46,6 +46,8 @@ export function createPrologue() {
             gl_FragColor = vec4(col * (0.55 + 0.45*vig), smoothstep(0.0, 0.15, uReveal) * vig);
           }`,
       });
+      // public/art/prologue_pano.png (먹 농도가 알파인 산수화)가 있으면 코드 그림 대신 쓴다
+      loadArtTexture('prologue_pano').then((t) => { if (t) mat.uniforms.uMap.value = t; });
       const plane = new THREE.Mesh(new THREE.PlaneGeometry(4, 2.4), mat);
       plane.position.set(0, b.headY, -3);
       group.add(plane);
