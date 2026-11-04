@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet" />
+<title>치악산 — 은혜 갚은 꿩</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0c0a; overflow: hidden; font-family: 'Nanum Brush Script', 'Nanum Myeongjo', serif; }
+  #app { display: block; width: 100vw; height: 100vh; }
+  #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: radial-gradient(ellipse at center, #efe6d2 0%, #d9ccb0 60%, #2a2520 100%); color: #15120e; text-align: center; }
+  #title h1 { font-size: 64px; margin: 0; letter-spacing: 6px; font-weight: 400; }
+  #title h1 span { color: #b3121b; }
+  #title p { margin: 0; font-size: 22px; opacity: .8; }
+  #title .row { display: flex; gap: 14px; }
+  #title button { font: inherit; font-size: 26px; padding: 10px 26px; border: 2px solid #15120e; background: transparent; color: #15120e; cursor: pointer; border-radius: 4px; }
+  #title button.spicy { border-color: #b3121b; color: #b3121b; }
+  #title button:hover { background: rgba(21,18,14,.08); }
+  #title .note { font-size: 18px; }
+  #title.hidden { display: none; }
+  #hud { position: fixed; left: 12px; bottom: 10px; color: #e9e1cf; font: 13px/1.4 monospace; opacity: .6; pointer-events: none; white-space: pre; }
+</style>
+</head>
+<body>
+<canvas id="app"></canvas>
+<div id="title">
+  <h1>치악산 <span>雉</span></h1>
+  <p>은혜 갚은 꿩</p>
+  <div class="row">
+    <button data-mode="mild">순한 맛</button>
+    <button data-mode="spicy" class="spicy">매운 맛</button>
+  </div>
+  <p class="note">무서우면 헤드셋을 벗거나 직원에게 말씀하세요</p>
+  <p class="note" id="vrnote"></p>
+</div>
+<div id="hud"></div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
