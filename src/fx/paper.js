@@ -90,6 +90,34 @@ const painters = {
       brush(ctx, curve(x0, y0, x1, y1, (r() - 0.5) * 20, 6), 3 + r() * 5, 0.7, r);
     }
   },
+  wing(ctx, S, r) {
+    // 위에서 덮은 어미 꿩 날개: 깃털 획을 부채꼴로
+    for (let i = 0; i < 26; i++) {
+      const a = Math.PI * (0.08 + 0.84 * (i / 25));
+      const len = S * (0.38 + r() * 0.1);
+      brush(ctx, curve(S / 2, S * 0.95, S / 2 + Math.cos(a) * len, S * 0.95 - Math.sin(a) * len, (r() - 0.5) * 30, 10), 18 + r() * 10, 0.85, r);
+    }
+  },
+  chick(ctx, S, r) {
+    ctx.fillStyle = INK;
+    ctx.beginPath(); ctx.ellipse(S * 0.5, S * 0.68, S * 0.22, S * 0.17, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(S * 0.62, S * 0.45, S * 0.11, S * 0.1, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(S * 0.72, S * 0.44); ctx.lineTo(S * 0.8, S * 0.47); ctx.lineTo(S * 0.72, S * 0.5); ctx.fill();
+    brush(ctx, curve(S * 0.45, S * 0.84, S * 0.43, S * 0.98, 0, 4), 6, 1, r);
+    brush(ctx, curve(S * 0.55, S * 0.84, S * 0.57, S * 0.98, 0, 4), 6, 1, r);
+  },
+  scholar(ctx, S, r) {
+    // 갓을 쓰고 활을 든 선비의 실루엣 (아래에서 올려다본 거인)
+    ctx.fillStyle = INK;
+    ctx.beginPath(); ctx.moveTo(S * 0.36, S); ctx.lineTo(S * 0.42, S * 0.35); ctx.lineTo(S * 0.58, S * 0.35); ctx.lineTo(S * 0.66, S); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(S * 0.5, S * 0.28, S * 0.06, S * 0.075, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(S * 0.5, S * 0.2, S * 0.17, S * 0.022, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(S * 0.465, S * 0.12, S * 0.07, S * 0.08);
+    brush(ctx, curve(S * 0.58, S * 0.4, S * 0.8, S * 0.3, 0, 6), 14, 1, r);
+    ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(S * 0.72, S * 0.42, S * 0.2, -1.3, 1.3); ctx.stroke();
+    ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(S * 0.77, S * 0.23); ctx.lineTo(S * 0.77, S * 0.61); ctx.stroke();
+  },
   mist(ctx, S, r) {
     for (let i = 0; i < 14; i++) {
       const y = S * (0.3 + r() * 0.4);

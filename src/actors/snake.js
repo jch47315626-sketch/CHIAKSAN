@@ -8,7 +8,7 @@ function scaleTexture(seed) {
   const ctx = c.getContext('2d'), r = rng(seed);
   ctx.fillStyle = '#17140f';
   ctx.fillRect(0, 0, S, S);
-  ctx.strokeStyle = '#3d362c';
+  ctx.strokeStyle = '#6a5e4c';
   ctx.lineWidth = 3;
   for (let y = 0; y < S + 32; y += 24) {
     for (let x = (y / 24) % 2 ? 0 : 16; x < S + 32; x += 32) {

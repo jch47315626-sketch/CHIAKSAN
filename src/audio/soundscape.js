@@ -118,7 +118,8 @@ export function createSoundscape(AudioContextCtor = globalThis.AudioContext || g
       try {
         ctx = new AudioContextCtor();
         build();
-        if (ctx.state === 'suspended') await ctx.resume();
+        // resume()은 사용자 동작 없이 부르면 영영 끝나지 않을 수 있어 기다리지 않는다
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
       } catch (e) {
         console.warn('소리를 켤 수 없습니다', e);
         ctx = null;

@@ -19,7 +19,8 @@ export const CONFIG = {
 };
 
 /** ?fast=10 같은 쿼리로 시간 값을 나눠 테스트를 빨리 돌린다. */
+const SPEEDUP_KEYS = ['CH1_SURVIVE_S', 'CH1_CHECKPOINT_S', 'CH1_ARROW_S'];
 export function applySpeedup(factor) {
   if (!(factor > 1)) return;
-  for (const k of Object.keys(CONFIG)) if (k.endsWith('_S') && k.startsWith('CH')) CONFIG[k] /= factor;
+  for (const k of SPEEDUP_KEYS) CONFIG[k] /= factor;
 }
