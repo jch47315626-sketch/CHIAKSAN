@@ -12,6 +12,7 @@ applySpeedup(Number(params.get('fast')));
 const debug = params.has('debug');
 
 const engine = createEngine(document.getElementById('app'));
+if (debug) window.__engine = engine;
 const input = createInputSources(engine);
 engine.scene.background = new THREE.Color(0x1a1714);
 
