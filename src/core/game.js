@@ -10,7 +10,8 @@ export function createGame({ chapters, mode, extraCtx = {} }) {
   const ctx = { ...extraCtx, mode, reachCheckpoint: (id) => { state.checkpointId = id; } };
   const current = () => chapters[state.chapterIndex];
 
-  function enter(index, checkpointId) {
+  function enter(index, checkpointId, retry = false) {
+    ctx.retry = retry; // 실패 후 재진입이면 장은 기준 머리 높이를 다시 재지 않는다
     state.chapterIndex = index;
     state.checkpointId = checkpointId;
     chapters[index].enter(ctx, checkpointId);
@@ -20,6 +21,7 @@ export function createGame({ chapters, mode, extraCtx = {} }) {
     state,
     ctx,
     start(index = 0) {
+      ctx.resetPresentation?.();
       state.screen = 'playing';
       state.failCount = 0;
       enter(index, null);
@@ -35,11 +37,12 @@ export function createGame({ chapters, mode, extraCtx = {} }) {
       } else if (result === 'fail') {
         current().exit();
         state.failCount++;
-        enter(state.chapterIndex, state.checkpointId);
+        enter(state.chapterIndex, state.checkpointId, true);
       }
     },
     reset() {
       if (state.screen === 'playing') current().exit();
+      ctx.resetPresentation?.();
       state.screen = 'title';
       state.chapterIndex = 0;
       state.checkpointId = null;

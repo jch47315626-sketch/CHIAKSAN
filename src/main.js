@@ -3,7 +3,7 @@ import { createEngine } from './core/engine.js';
 import { createInputSources } from './input/sources.js';
 import { detectGestures } from './input/gestures.js';
 import { createGame } from './core/game.js';
-import { applySpeedup } from './config.js';
+import { applySpeedup, CONFIG } from './config.js';
 import { createPrologue } from './chapters/prologue.js';
 import { createCh1Nest } from './chapters/ch1Nest.js';
 import { createSoundscape } from './audio/soundscape.js';
@@ -27,6 +27,14 @@ const frame = { sample: null, baseline: { headY: 1.6, headX: 0 } };
 const extraCtx = {
   engine, input, frame, sound, ink, subtitles,
   calibrate() { frame.baseline = input.calibrate(); return frame.baseline; },
+  // 손님이 바뀔 때 앞 손님의 먹·붉은 기운·소리가 남지 않게 지운다
+  resetPresentation() {
+    ink.setTension(CONFIG.TENSION_FLOOR);
+    ink.setRedPulse(0);
+    ink.setBlackout(0);
+    subtitles.clear();
+    sound.wind(0); sound.drone(0); sound.hiss({ x: 0, y: 0, z: 0 }, 0); sound.stopHeartbeat();
+  },
 };
 const chapters = [createPrologue(), createCh1Nest()];
 let game = null;
@@ -50,6 +58,7 @@ async function begin(mode, chapterIndex = 0) {
   game = createGame({ chapters, mode, extraCtx });
   input.resetLook();
   game.start(chapterIndex);
+  if (debug) window.__game = game;
 }
 
 for (const btn of titleEl.querySelectorAll('button[data-mode]')) {

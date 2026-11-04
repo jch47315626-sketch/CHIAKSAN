@@ -105,3 +105,26 @@ test('start at a chapter index', () => {
   assert.equal(g.state.chapterIndex, 1);
   assert.deepEqual(b.log.enters, [null]);
 });
+
+test('retry after fail is flagged so chapters keep their baseline', () => {
+  let n = 0;
+  const seen = [];
+  const a = fakeChapter('a', () => (n++ === 0 ? 'fail' : 'complete'));
+  a.enter = function (ctx, cp) { seen.push(ctx.retry); };
+  const b = fakeChapter('b');
+  b.enter = function (ctx) { seen.push(ctx.retry); };
+  const g = createGame({ chapters: [a, b], mode: 'mild' });
+  g.start();
+  g.tick(0.016, G); // fail -> retry
+  g.tick(0.016, G); // complete -> next chapter fresh
+  assert.deepEqual(seen, [false, true, false]);
+});
+
+test('start and reset clear presentation state', () => {
+  let calls = 0;
+  const g = createGame({ chapters: [fakeChapter('a')], mode: 'mild', extraCtx: { resetPresentation: () => calls++ } });
+  g.start();
+  assert.equal(calls, 1);
+  g.reset();
+  assert.equal(calls, 2);
+});

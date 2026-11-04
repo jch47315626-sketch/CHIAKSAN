@@ -19,6 +19,15 @@ export function createPrologue() {
       engine.scene.background = new THREE.Color(0x0d0c0a);
       engine.rig.position.set(0, 0, 0);
       const b = ctx.calibrate();
+      if (group) {
+        // 한 번 만든 그림을 다시 쓴다 (손님마다 새로 만들면 메모리가 계속 늘어남)
+        mat.uniforms.uReveal.value = 0;
+        group.children[0].position.y = b.headY;
+        engine.scene.add(group);
+        ctx.sound.wind(0.35);
+        ctx.sound.drone(0.25);
+        return;
+      }
       group = new THREE.Group();
       const paperTex = makeInkTexture({ kind: 'ridge', seed: 21, size: 1024 });
       mat = new THREE.ShaderMaterial({

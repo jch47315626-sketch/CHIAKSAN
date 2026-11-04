@@ -18,7 +18,7 @@ export function createCh1Nest() {
   const forceFacing = params.get('facing'); // 확인용: always | never
 
   let ctx, stage, snake, rules, wing, scholar, chick, eyes;
-  let firstRun, t, prevStatus, fail, swallowed, wingT, nextSlither, prevForced, lowBreathCue, cycle;
+  let firstRun, swallowAt, t, prevStatus, fail, swallowed, wingT, nextSlither, prevForced, lowBreathCue, cycle;
   const r = rng(77);
   const camPos = new THREE.Vector3();
   const camQuat = new THREE.Quaternion();
@@ -100,11 +100,13 @@ export function createCh1Nest() {
       stage.group.visible = true;
       engine.scene.fog = stage.fog;
       engine.scene.background = new THREE.Color(0x0e0c0a);
-      const b = ctx.calibrate();
+      // 기준 머리 높이는 장에 처음 들어올 때만 잰다 (잡힌 직후 움츠린 자세를 기준으로 삼지 않게)
+      const b = ctx.retry ? ctx.frame.baseline : ctx.calibrate();
       engine.rig.position.set(0, EYE_Y - b.headY, 0);
 
       rules = createCh1Rules(checkpointId);
       firstRun = !checkpointId;
+      swallowAt = -1;
       t = 0; prevStatus = 'running'; fail = -1; swallowed = checkpointId === 'half';
       prevForced = false; lowBreathCue = false;
       nextSlither = 12 + r() * 10;
@@ -223,7 +225,13 @@ export function createCh1Nest() {
         tmp.set(look.x, 0, look.z).normalize().multiplyScalar(1.0).add(camPos);
         chick.position.set(tmp.x - 0.4, 0, tmp.z);
         chick.visible = true;
-        setTimeout(() => { if (chick.visible) { chick.visible = false; sound.sting('spotted'); ink.setRedPulse(1); } }, 1200);
+        swallowAt = t + 1.2;
+      }
+      if (swallowAt >= 0 && t >= swallowAt) {
+        swallowAt = -1;
+        chick.visible = false;
+        sound.sting('spotted');
+        ink.setRedPulse(1);
       }
 
       ctx.frame.debug = `t ${out.survived.toFixed(1)} breath ${out.breath.toFixed(2)} tension ${out.tension.toFixed(2)} snake ${cycle.mode} facing ${facing} ${out.status}`;
@@ -253,6 +261,8 @@ export function createCh1Nest() {
 
     exit() {
       stage.group.visible = false;
+      chick.visible = false;
+      swallowAt = -1;
       ctx.sound.hiss({ x: 0, y: 0, z: 0 }, 0);
       ctx.sound.stopHeartbeat();
       ctx.subtitles.clear();
