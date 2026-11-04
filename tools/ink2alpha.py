@@ -8,9 +8,10 @@ from PIL import Image, ImageDraw, ImageFilter
 src, dst = sys.argv[1], sys.argv[2]
 mode = sys.argv[3] if len(sys.argv) > 3 else 'ink'
 max_side = int(sys.argv[4]) if len(sys.argv) > 4 else 1024
-gray = Image.open(src).convert('L')
-orig_w = gray.size[0]
-gray.thumbnail((max_side, max_side), Image.LANCZOS)
+rgb = Image.open(src).convert('RGB')
+orig_w = rgb.size[0]
+rgb.thumbnail((max_side, max_side), Image.LANCZOS)
+gray = rgb.convert('L')
 k = gray.size[0] / orig_w
 # 활과 시위 사이처럼 그림 안에 갇힌 바탕도 지우고 싶을 때 쓰는 추가 시작점
 extra = [tuple(int(float(c) * k) for c in pt.split(',')) for pt in sys.argv[5].split(';')] if len(sys.argv) > 5 else []
@@ -28,15 +29,19 @@ if mode == 'figure':
     inside = outside.point(lambda v: 255 - v).filter(ImageFilter.GaussianBlur(1.2))
     # 안쪽은 불투명, 가장자리는 먹 번짐을 살린다
     alpha = Image.composite(inside, ink_alpha, inside)
-    # 밤 장면에 맞게 종이색을 살짝 어둡게
-    tone = gray.point(lambda v: int(v * 0.82))
-    out = Image.merge('RGBA', (tone, tone.point(lambda v: int(v * 0.97)), tone.point(lambda v: int(v * 0.9)), alpha))
+    # 밤 장면에 맞게 종이색을 살짝 어둡게 (붉은 눈 같은 색은 그대로 살린다)
+    r, g, b = rgb.split()
+    out = Image.merge('RGBA', (r.point(lambda v: int(v * 0.82)), g.point(lambda v: int(v * 0.8)), b.point(lambda v: int(v * 0.74)), alpha))
+elif mode == 'texture':
+    # 타일 텍스처: 바탕을 지우지 않고 그대로, 밤 장면 톤으로만 맞춘다
+    out = rgb.point(lambda v: int(v * 0.7)).convert('RGBA')
+    alpha = None
 else:
     ink = Image.new('L', gray.size, 14)
     out = Image.merge('RGBA', (ink, ink.point(lambda _: 12), ink.point(lambda _: 10), ink_alpha))
     alpha = ink_alpha
 
-bbox = alpha.getbbox()
+bbox = alpha.getbbox() if alpha else None
 if bbox:
     out = out.crop(bbox)
 out.save(dst)

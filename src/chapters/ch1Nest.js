@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { buildNestScene } from '../scenes/nestScene.js';
-import { makeInkTexture, makePaperLayer, updateBillboards, rng, applyArt } from '../fx/paper.js';
+import { makeInkTexture, makePaperLayer, updateBillboards, rng, applyArt, loadArtTexture } from '../fx/paper.js';
 import { createSnake, isFacing } from '../actors/snake.js';
 import { createCh1Rules } from './ch1Rules.js';
 import { CONFIG } from '../config.js';
@@ -17,7 +17,7 @@ export function createCh1Nest() {
   const params = new URLSearchParams(location.search);
   const forceFacing = params.get('facing'); // 확인용: always | never
 
-  let ctx, stage, snake, rules, wing, scholar, chick, eyes;
+  let ctx, stage, snake, rules, wing, scholar, chick, eyes, lunge;
   let firstRun, swallowAt, t, prevStatus, fail, swallowed, wingT, nextSlither, prevForced, lowBreathCue, cycle;
   const r = rng(77);
   const camPos = new THREE.Vector3();
@@ -58,6 +58,24 @@ export function createCh1Nest() {
       stage.group.add(g);
       return g;
     });
+    // 잡혔을 때(매운 맛) 정면으로 덮쳐 오는 구렁이 그림. 그림 파일이 있을 때만 쓴다.
+    lunge = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, fog: false }),
+    );
+    lunge.position.set(0, -0.05, -0.6);
+    lunge.renderOrder = 999;
+    lunge.visible = false;
+    lunge.userData.ready = false;
+    loadArtTexture('snake_lunge').then((t) => {
+      if (!t) return;
+      lunge.material.map = t;
+      lunge.material.needsUpdate = true;
+      lunge.userData.aspect = t.image.width / t.image.height;
+      lunge.userData.ready = true;
+    });
+    engine.camera.add(lunge);
+
     engine.scene.add(stage.group);
     stage.group.visible = false;
   }
@@ -124,6 +142,8 @@ export function createCh1Nest() {
       wing.visible = !checkpointId;
       wing.position.set(0, 0.32, 0);
       for (const e of eyes) { e.visible = true; e.userData.seen = 0; }
+      lunge.visible = false;
+      lunge.material.opacity = 1;
 
       ctx.ink.setTension(CONFIG.TENSION_FLOOR);
       ctx.ink.setRedPulse(0);
@@ -159,8 +179,16 @@ export function createCh1Nest() {
         fail += dt;
         ink.setBlackout(Math.min(1, fail / (FAIL_S * 0.6)));
         snake.update(dt);
-        if (ctx.mode === 'spicy') {
-          // 매운 맛: 구렁이 머리가 정면으로 덮친다
+        if (ctx.mode === 'spicy' && lunge.userData.ready) {
+          // 매운 맛: 아가리를 벌린 구렁이가 눈앞으로 튀어든다
+          const k = Math.min(1, fail / 0.35);
+          const sc = 0.25 + 1.25 * k * k;
+          lunge.visible = true;
+          lunge.scale.set(sc * lunge.userData.aspect, sc, 1);
+          lunge.position.x = Math.sin(fail * 60) * 0.012 * (1 - k * 0.5);
+          lunge.material.opacity = Math.min(1, 1.6 - fail);
+        } else if (ctx.mode === 'spicy') {
+          // 그림이 없으면 입체 구렁이 머리가 정면으로 덮친다
           snake.rearUp(1);
           tmp.copy(look).multiplyScalar(0.35).add(camPos);
           const h = snake.headPosition(); // 구렁이 그룹 기준 좌표
@@ -264,6 +292,7 @@ export function createCh1Nest() {
     exit() {
       stage.group.visible = false;
       chick.visible = false;
+      lunge.visible = false;
       swallowAt = -1;
       ctx.sound.hiss({ x: 0, y: 0, z: 0 }, 0);
       ctx.sound.stopHeartbeat();

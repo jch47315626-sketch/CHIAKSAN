@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { rng } from '../fx/paper.js';
+import { rng, loadArtTexture } from '../fx/paper.js';
 export { isFacing } from './facing.js';
 
 function scaleTexture(seed) {
@@ -28,6 +28,14 @@ function scaleTexture(seed) {
 export function createSnake({ segments = 48, radius = 0.12, length = 6, seed = 3 } = {}) {
   const group = new THREE.Group();
   const bodyMat = new THREE.MeshBasicMaterial({ map: scaleTexture(seed), fog: true });
+  // public/art/snake_scales.png 가 있으면 그 비늘 그림으로 바꾼다
+  loadArtTexture('snake_scales').then((t) => {
+    if (!t) return;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(2, 1);
+    bodyMat.map = t;
+    bodyMat.needsUpdate = true;
+  });
   const body = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 8), bodyMat, segments);
   body.frustumCulled = false;
   group.add(body);

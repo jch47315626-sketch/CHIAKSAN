@@ -213,14 +213,18 @@ const artCache = new Map();
  * public/art/<name>.png 그림이 있으면 평면의 그림을 그것으로 바꾼다 (없으면 코드로 그린 그림 유지).
  * 그림 비율에 맞춰 평면 가로 폭도 조정한다.
  */
-export function applyArt(mesh, name) {
+export function loadArtTexture(name) {
   const url = `./art/${name}.png`;
   if (!artCache.has(url)) {
     artCache.set(url, new Promise((resolve) => {
       new THREE.TextureLoader().load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; resolve(t); }, undefined, () => resolve(null));
     }));
   }
-  artCache.get(url).then((tex) => {
+  return artCache.get(url);
+}
+
+export function applyArt(mesh, name) {
+  loadArtTexture(name).then((tex) => {
     if (!tex) return;
     const g = mesh.geometry;
     g.computeBoundingBox();
