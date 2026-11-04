@@ -5,6 +5,35 @@ import { makeInkTexture, makePaperLayer, makeSkyDome, rng } from '../fx/paper.js
  * 1장 무대: 밤 숲속 땅바닥의 꿩 둥지. 플레이어(새끼 꿩)는 원점, 눈높이 0.15m.
  * 반환: { group, fog, spots: 붉은 눈 위치 후보 }
  */
+/**
+ * 땅: 플레이어 발밑에서 바깥으로 갈수록 성기게 나눈 원판. 큰 삼각형이 카메라 밑을 가로지르면
+ * 깊이·안개 계산이 깨지는 기기가 있어(소프트웨어 렌더러에서 확인), 중심 근처를 촘촘하게 만든다.
+ */
+function makeGroundGeometry(radius, rings = 40, sectors = 48, inner = 0.02) {
+  const pos = [], uv = [], idx = [];
+  for (let k = 0; k <= rings; k++) {
+    const r = inner * (radius / inner) ** (k / rings);
+    for (let j = 0; j <= sectors; j++) {
+      const a = (j / sectors) * Math.PI * 2;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      pos.push(x, 0, z);
+      uv.push(x / 4, z / 4);
+    }
+  }
+  const row = sectors + 1;
+  for (let k = 0; k < rings; k++) {
+    for (let j = 0; j < sectors; j++) {
+      const a = k * row + j, b = a + row;
+      idx.push(a, a + 1, b, a + 1, b + 1, b);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  return g;
+}
+
 function makeGroundTexture(seed) {
   const S = 1024, c = document.createElement('canvas');
   c.width = c.height = S;
@@ -13,14 +42,13 @@ function makeGroundTexture(seed) {
   ctx.fillRect(0, 0, S, S);
   for (let i = 0; i < 900; i++) {
     ctx.globalAlpha = 0.08 + r() * 0.15;
-    ctx.fillStyle = r() < 0.7 ? '#000' : '#5a5246';
+    ctx.fillStyle = r() < 0.92 ? '#000' : '#3a342b';
     const x = r() * S, y = r() * S, w = 4 + r() * 30;
     ctx.beginPath(); ctx.ellipse(x, y, w, w * 0.3, r() * Math.PI, 0, Math.PI * 2); ctx.fill();
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(30, 30);
   return t;
 }
 
@@ -31,10 +59,9 @@ export function buildNestScene(seed = 11) {
 
   // 땅: 짙은 먹 원판 + 가장자리 번짐
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(120, 120, 60, 60),
+    makeGroundGeometry(60),
     new THREE.MeshBasicMaterial({ map: makeGroundTexture(seed), fog: true }),
   );
-  ground.rotation.x = -Math.PI / 2;
   group.add(ground);
 
   const grassTex = [1, 2, 3, 4].map((s) => makeInkTexture({ kind: 'grass', seed: seed * 10 + s }));
