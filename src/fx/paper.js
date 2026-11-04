@@ -207,3 +207,28 @@ export function makeSkyDome({ seed = 7, night = true } = {}) {
   mesh.renderOrder = -10;
   return mesh;
 }
+
+const artCache = new Map();
+/**
+ * public/art/<name>.png 그림이 있으면 평면의 그림을 그것으로 바꾼다 (없으면 코드로 그린 그림 유지).
+ * 그림 비율에 맞춰 평면 가로 폭도 조정한다.
+ */
+export function applyArt(mesh, name) {
+  const url = `./art/${name}.png`;
+  if (!artCache.has(url)) {
+    artCache.set(url, new Promise((resolve) => {
+      new THREE.TextureLoader().load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; resolve(t); }, undefined, () => resolve(null));
+    }));
+  }
+  artCache.get(url).then((tex) => {
+    if (!tex) return;
+    const g = mesh.geometry;
+    g.computeBoundingBox();
+    const bb = g.boundingBox;
+    const planeAspect = (bb.max.x - bb.min.x) / (bb.max.y - bb.min.y);
+    const imgAspect = tex.image.width / tex.image.height;
+    mesh.scale.x *= imgAspect / planeAspect;
+    mesh.material.map = tex;
+    mesh.material.needsUpdate = true;
+  });
+}

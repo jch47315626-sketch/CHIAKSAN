@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeInkTexture, makePaperLayer, makeSkyDome, rng } from '../fx/paper.js';
+import { makeInkTexture, makePaperLayer, makeSkyDome, rng, applyArt } from '../fx/paper.js';
 
 /**
  * 1장 무대: 밤 숲속 땅바닥의 꿩 둥지. 플레이어(새끼 꿩)는 원점, 눈높이 0.15m.
@@ -85,6 +85,7 @@ export function buildNestScene(seed = 11) {
     const h = 0.5 + r() * 0.9 + d * 0.15;
     const m = makePaperLayer(grassTex[i % 4], { width: h * 1.1, height: h, billboard: true });
     m.position.set(Math.cos(a) * d, 0, Math.sin(a) * d);
+    if (i % 2 === 0) applyArt(m, 'grass1');
     group.add(m);
   }
 

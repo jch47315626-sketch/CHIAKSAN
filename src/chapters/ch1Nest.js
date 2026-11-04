@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { buildNestScene } from '../scenes/nestScene.js';
-import { makeInkTexture, makePaperLayer, updateBillboards, rng } from '../fx/paper.js';
+import { makeInkTexture, makePaperLayer, updateBillboards, rng, applyArt } from '../fx/paper.js';
 import { createSnake, isFacing } from '../actors/snake.js';
 import { createCh1Rules } from './ch1Rules.js';
 import { CONFIG } from '../config.js';
@@ -37,6 +37,8 @@ export function createCh1Nest() {
 
     scholar = makePaperLayer(makeInkTexture({ kind: 'scholar', seed: 9, size: 1024 }), { width: 5, height: 7, billboard: true });
     scholar.visible = false;
+    applyArt(scholar, 'scholar');
+    applyArt(wing, 'wing');
     stage.group.add(scholar);
 
     chick = makePaperLayer(makeInkTexture({ kind: 'chick', seed: 4 }), { width: 0.22, height: 0.22, billboard: true });
